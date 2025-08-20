@@ -50,7 +50,14 @@ type doc struct {
 }
 
 type frontmatter struct {
-	Patterns []string `yaml:"patterns"`
+	Type     string   `json:"type"`
+	Summary  string   `json:"summary"`
+	Patterns []string `json:"patterns"`
+}
+
+type config struct {
+	Types  []string `json:"types"`
+	Ignore []string `json:"ignore"`
 }
 
 func compilePatterns(patterns []string) []*regexp.Regexp {
