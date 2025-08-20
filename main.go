@@ -5,32 +5,128 @@ import (
 	"flag"
 	"fmt"
 	"io/fs"
-	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
+
+	"github.com/charmbracelet/glamour"
+	"github.com/charmbracelet/lipgloss"
+	yaml "github.com/goccy/go-yaml"
 )
 
-func getMessage(line string) string {
-	if strings.Contains(line, "func") {
-		return "LOOK IT'S A FUNCTION"
+func renderDoc(doc doc) string {
+	return doc.path + "\n" + doc.rendered
+}
+
+var title = lipgloss.NewStyle().Render("Déjà vu")
+
+func getMessage(docs *[]doc, line []byte) string {
+	message := ""
+
+	for _, doc := range *docs {
+		for _, pattern := range doc.patterns {
+			if pattern.Match(line) {
+				message += renderDoc(doc)
+			}
+		}
 	}
 
-	return ""
+	if message == "" {
+		return ""
+	}
+
+	return lipgloss.NewStyle().
+		BorderForeground(lipgloss.Color("72")).
+		Border(lipgloss.NormalBorder()).
+		Render("  >", title, " ", message)
+
 }
 
-type Doc struct {
-	path      string
-	contents  string
-	familiars []string
+type doc struct {
+	path     string
+	rendered string
+	patterns []*regexp.Regexp
 }
 
-func parseFile(path string) (Doc, error) {
-	return Doc{}, fmt.Errorf("Not implemented")
+type frontmatter struct {
+	Patterns []string `yaml:"patterns"`
 }
 
-func loadDocs(root string) []Doc {
-	var docs []Doc
+func compilePatterns(patterns []string) []*regexp.Regexp {
+	result := []*regexp.Regexp{}
+
+	for _, pattern := range patterns {
+		re, err := regexp.Compile(pattern)
+		if err == nil {
+			result = append(result, re)
+		}
+	}
+
+	return result
+}
+
+func parseFrontmatter(contents string) frontmatter {
+	result := frontmatter{}
+
+	after, start := strings.CutPrefix(contents, "---")
+
+	if !start {
+		return result
+	}
+
+	lines := strings.Lines(after)
+	frontmatter := ""
+
+	for line := range lines {
+		if strings.HasPrefix(line, "---") {
+			break
+		}
+
+		frontmatter += line
+	}
+
+	yaml.Unmarshal([]byte(frontmatter), &result)
+
+	return result
+}
+
+func clearFrontmatter(contents string) string {
+	re := regexp.MustCompile("(?m)^---(.|\n|\r)*?---")
+	return strings.TrimSpace(re.ReplaceAllString(contents, ""))
+}
+
+func parseFile(path string) (doc, error) {
+	file, readErr := os.ReadFile(path)
+	contents := string(file)
+
+	if readErr != nil {
+		return doc{}, fmt.Errorf("Cannot find the specified file %s", path)
+	}
+
+	renderer, _ := glamour.NewTermRenderer(
+		glamour.WithAutoStyle(),
+	)
+
+	rendered, renderErr := renderer.Render(clearFrontmatter(contents))
+
+	if renderErr != nil {
+		rendered = contents
+	}
+
+	frontmatter := parseFrontmatter(contents)
+	patterns := compilePatterns(frontmatter.Patterns)
+
+	return doc{
+		path,
+		rendered,
+		patterns,
+	}, nil
+
+}
+
+func loadDocs(root string) []doc {
+	var docs []doc
 
 	filepath.WalkDir(root,
 		func(s string, d fs.DirEntry, err error) error {
@@ -54,22 +150,21 @@ func loadDocs(root string) []Doc {
 
 func main() {
 	dir := flag.String("docs", "./", "path to directory containing docs")
+	flag.Parse()
 
 	docs := loadDocs(*dir)
-
-	log.Print(docs)
 
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for scanner.Scan() {
-		text := scanner.Text()
+		bytes := scanner.Bytes()
 
-		message := getMessage(text)
+		message := getMessage(&docs, bytes)
 		if message != "" {
 			fmt.Fprintf(os.Stdout, "\r\n%s", message)
 		}
 
 		os.Stdout.WriteString("\r\n")
-		os.Stdout.Write(scanner.Bytes())
+		os.Stdout.Write(bytes)
 	}
 }
