@@ -30,7 +30,6 @@ The application can be used by piping any other command on which you'd like to s
 cat myfile.txt | dejavu
 ```
 
-
 > [!TIP]
 > Since `dejavu` works with the Stdin stream only, in some cases you may need to merge Stdout and Stderr into a single stream so that it can be used as expected, doing will depend on the shell you're using
 
