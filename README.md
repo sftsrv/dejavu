@@ -13,21 +13,23 @@ Developers don't read documentation. Just bring it to them instead.
 
 The project is still in the early stages of development, at the moment it's only possible to install using `go install`
 
-### Using `go install`
+### `go install`
 
 ```sh
 go install github.com/sftsrv/dejavu@latest
 ```
 
-### Usage
+## Usage
 
 The application can be used by piping any other command on which you'd like to surface documentation, for example `cat myfile.txt`:
 
 ```sh
-cat myfile.txt | dejavu --docs ./my-docs-dir
+cat myfile.txt | dejavu
 ```
 
-> `--docs` is a path to the documentation to reference. If omitted this will search all `.md` files in the directory
+Since `dejavu` works with the stdin stream that it received, in some cases you may need to merge Stdout and Stderr into a single stream that can be used, doing will depend on the shell you're using
+
+## Documentation Structure
 
 Each doc should be a markdown file that contains frontmatter with a `patterns` property which is a list of regular expressions on which the document should be shown:
 
@@ -35,9 +37,15 @@ Each doc should be a markdown file that contains frontmatter with a `patterns` p
 
 ```md
 ---
+# list of patterns to match for this doc to be shown
 patterns:
   - "^MY_ERROR"
   - "BADBAD"
+# list of types/categories that this doc can be filtered by
+types:
+  - error
+  - setup
+# summary to be shown if dejavu is running in `summary` mode
 ---
 
 # MY_ERROR or BADBAD Error Handling Doc
@@ -46,6 +54,24 @@ These are common errors that we can see when running some tests,
 they are triggered if we see output with a line starting with
 `MY_ERROR` or any text containing `BADBAD`
 ```
+
+## Configuration
+
+`dejavu` can be configured by using a `dejavi.config.json` file with the following structure:
+
+```json
+{
+  "docs": "./faq",
+  "summary": false,
+  "types": [
+    "warning",
+    "error"
+  ]
+}
+```
+
+Values from the configuration may also be overidden using the matching command line arguments. These can be found by using `dejavu --help`
+
 
 ## Development
 
@@ -59,12 +85,3 @@ cat myfile.txt | go run .
 
 - [Examples for using io.Pipe in go](https://www.zupzup.org/io-pipe-go/index.html)
 - [Mastering io.Pipe in go](https://medium.com/@0xgotznit/mastering-io-pipe-in-go-ca8686150b5e)
-
-## Project Roadmap
-
-Some things that I still want to do before considering this project complete:
-
-- [ ] Allow filtering based on type of doc, e.g. errors only
-- [ ] Allow docs to specify a summary? User can view the full doc when desired
-- [ ] Make it possible to ignore some paths when searching for docs (e.g. `node_modules`)
-- [ ] Should support stderr + stdout
