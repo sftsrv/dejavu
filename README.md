@@ -67,3 +67,4 @@ Some things that I still want to do before considering this project complete:
 - [ ] Allow filtering based on type of doc, e.g. errors only
 - [ ] Allow docs to specify a summary? User can view the full doc when desired
 - [ ] Make it possible to ignore some paths when searching for docs (e.g. `node_modules`)
+- [ ] Should support stderr + stdout
