@@ -4,28 +4,24 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"io/fs"
 	"os"
-	"path/filepath"
-	"regexp"
-	"strings"
 
-	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
-	yaml "github.com/goccy/go-yaml"
+	"github.com/sftsrv/dejavu/config"
+	"github.com/sftsrv/dejavu/docs"
 )
 
-func renderDoc(doc doc) string {
-	return doc.path + "\n" + doc.rendered
+func renderDoc(doc docs.Doc) string {
+	return doc.Path + "\n" + doc.Rendered
 }
 
 var title = lipgloss.NewStyle().Render("Déjà vu")
 
-func getMessage(docs *[]doc, line []byte) string {
+func getMessage(docs *[]docs.Doc, line []byte) string {
 	message := ""
 
 	for _, doc := range *docs {
-		for _, pattern := range doc.patterns {
+		for _, pattern := range doc.Patterns {
 			if pattern.Match(line) {
 				message += renderDoc(doc)
 			}
@@ -43,135 +39,60 @@ func getMessage(docs *[]doc, line []byte) string {
 
 }
 
-type doc struct {
-	path     string
-	rendered string
-	patterns []*regexp.Regexp
-}
-
-type frontmatter struct {
-	Type     string   `json:"type"`
-	Summary  string   `json:"summary"`
-	Patterns []string `json:"patterns"`
-}
-
-type config struct {
-	Types  []string `json:"types"`
-	Ignore []string `json:"ignore"`
-}
-
-func compilePatterns(patterns []string) []*regexp.Regexp {
-	result := []*regexp.Regexp{}
-
-	for _, pattern := range patterns {
-		re, err := regexp.Compile(pattern)
-		if err == nil {
-			result = append(result, re)
-		}
-	}
-
-	return result
-}
-
-func parseFrontmatter(contents string) frontmatter {
-	result := frontmatter{}
-
-	after, start := strings.CutPrefix(contents, "---")
-
-	if !start {
-		return result
-	}
-
-	lines := strings.Lines(after)
-	frontmatter := ""
-
-	for line := range lines {
-		if strings.HasPrefix(line, "---") {
-			break
-		}
-
-		frontmatter += line
-	}
-
-	yaml.Unmarshal([]byte(frontmatter), &result)
-
-	return result
-}
-
-func clearFrontmatter(contents string) string {
-	re := regexp.MustCompile("(?m)^---(.|\n|\r)*?---")
-	return strings.TrimSpace(re.ReplaceAllString(contents, ""))
-}
-
-func parseFile(path string) (doc, error) {
-	file, readErr := os.ReadFile(path)
-	contents := string(file)
-
-	if readErr != nil {
-		return doc{}, fmt.Errorf("Cannot find the specified file %s", path)
-	}
-
-	renderer, _ := glamour.NewTermRenderer(
-		glamour.WithAutoStyle(),
-	)
-
-	rendered, renderErr := renderer.Render(clearFrontmatter(contents))
-
-	if renderErr != nil {
-		rendered = contents
-	}
-
-	frontmatter := parseFrontmatter(contents)
-	patterns := compilePatterns(frontmatter.Patterns)
-
-	return doc{
-		path,
-		rendered,
-		patterns,
-	}, nil
-
-}
-
-func loadDocs(root string) []doc {
-	var docs []doc
-
-	filepath.WalkDir(root,
-		func(s string, d fs.DirEntry, err error) error {
-			if err != nil {
-				return err
-			}
-
-			if !d.IsDir() && strings.HasSuffix(s, ".md") {
-				doc, docErr := parseFile(s)
-				if docErr == nil {
-					docs = append(docs, doc)
-				}
-			}
-
-			return nil
-		},
-	)
-
-	return docs
-}
-
-func main() {
-	dir := flag.String("docs", "./", "path to directory containing docs")
-	flag.Parse()
-
-	docs := loadDocs(*dir)
-
-	scanner := bufio.NewScanner(os.Stdin)
+func processStream(in, out *os.File, docs *[]docs.Doc) {
+	scanner := bufio.NewScanner(in)
 
 	for scanner.Scan() {
 		bytes := scanner.Bytes()
 
-		message := getMessage(&docs, bytes)
+		message := getMessage(docs, bytes)
 		if message != "" {
-			fmt.Fprintf(os.Stdout, "\r\n%s", message)
+			fmt.Fprintf(out, "\r\n%s", message)
 		}
 
-		os.Stdout.WriteString("\r\n")
-		os.Stdout.Write(bytes)
+		out.WriteString("\r\n")
+		out.Write(bytes)
 	}
+
+}
+
+const usage = `dejavu
+
+dejavu surfaces documentation that may be relevant to your developers alongside the output of your normal CLI commands
+
+dejavu is used a pipe as follows:
+
+$ my special command | dejavu <...flags>
+
+the following flags may be provided when running dejavu. provided flags will override the matching value in the config file:
+
+`
+
+func main() {
+	pathFlag := flag.String("path", "./dejavu.config.json", "path to config file")
+	docsFlag := flag.String("docs", "", "path to directory containing docs")
+	typesFlag := flag.String("types", "", "limit the types of docs to include")
+	summaryFlag := flag.Bool("summary", false, "only show summary of doc")
+	helpFlag := flag.Bool("help", false, "show help menu")
+
+	flag.Parse()
+
+	if *helpFlag {
+		fmt.Print(usage)
+		flag.Usage()
+		return
+	}
+
+	flags := config.Flags{
+		Path:    *pathFlag,
+		Docs:    *docsFlag,
+		Types:   *typesFlag,
+		Summary: *summaryFlag,
+	}
+
+	config := config.Load(flags)
+
+	docs := docs.Load(config.Docs, config.Types, config.Summary)
+
+	processStream(os.Stdin, os.Stdout, &docs)
 }
