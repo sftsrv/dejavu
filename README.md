@@ -1,6 +1,6 @@
 # Déjà vu
 
-Developers don't read documentation. Just bring it to them instead.
+Developers don't search for documentation. Just bring it to them instead.
 
 `dejavu` surfaces documentation that may be relevant to your developers alongside the output of your normal CLI commands
 
