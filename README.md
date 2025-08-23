@@ -57,7 +57,7 @@ they are triggered if we see output with a line starting with
 
 ## Configuration
 
-`dejavu` can be configured by using a `dejavi.config.json` file with the following structure:
+`dejavu` can be configured by using a `dejavu.config.json` file with the following structure:
 
 ```json
 {
