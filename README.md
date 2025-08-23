@@ -1,12 +1,4 @@
----
-patterns:
-  - "^#.*"
----
-
 # Déjà vu
-
-> [!NOTE]  
-> Welcome! If you're using this consider now a bug hunter. Let me know if you find any issues so that we can make this better for everyone!
 
 Developers don't read documentation. Just bring it to them instead.
 
@@ -23,6 +15,9 @@ go install github.com/sftsrv/dejavu@latest
 ```
 
 ## Usage
+
+> [!NOTE]  
+> Welcome! If you're using this then consider yourself now a bug hunter. Let me know if you find any issues so that we can make this better for everyone!
 
 The application can be used by piping any other command on which you'd like to surface documentation, for example `cat myfile.txt`:
 
