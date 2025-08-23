@@ -41,11 +41,12 @@ Each doc should be a markdown file that contains frontmatter with a `patterns` p
 patterns:
   - "^MY_ERROR"
   - "BADBAD"
-# list of types/categories that this doc can be filtered by
-types:
+# list of tags that apply to this doc
+tags:
   - error
   - setup
 # summary to be shown if dejavu is running in `summary` mode
+summary: This is a bad error
 ---
 
 # MY_ERROR or BADBAD Error Handling Doc
@@ -62,13 +63,15 @@ they are triggered if we see output with a line starting with
 ```json
 {
   "docs": "./faq",
-  "summary": false,
-  "types": [
+  "summary": true,
+  "tags": [
     "warning",
     "error"
   ]
 }
 ```
+
+> The config file can also be set with the `--config` flag.
 
 Values from the configuration may also be overidden using the matching command line arguments. These can be found by using `dejavu --help`
 

@@ -8,7 +8,7 @@ import (
 
 type Config struct {
 	Docs    string   `json:"docs"`
-	Types   []string `json:"types"`
+	Tags    []string `json:"tags"`
 	Summary bool     `json:"summary"`
 }
 
@@ -38,7 +38,7 @@ func loadConfigFile(path string) Config {
 type Flags struct {
 	Path    string
 	Docs    string
-	Types   string
+	Tags    string
 	Summary bool
 }
 
@@ -50,8 +50,8 @@ func Load(flags Flags) Config {
 		config.Docs = flags.Docs
 	}
 
-	if flags.Types != "" {
-		config.Types = strings.Split(flags.Types, ",")
+	if flags.Tags != "" {
+		config.Tags = strings.Split(flags.Tags, ",")
 	}
 
 	if flags.Summary == true {

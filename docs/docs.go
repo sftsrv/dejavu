@@ -17,13 +17,13 @@ type Doc struct {
 	Path     string
 	Summary  string
 	Rendered string
-	Types    []string
+	Tags     []string
 	Patterns []*regexp.Regexp
 }
 
 type Frontmatter struct {
 	Summary  string   `json:"summary"`
-	Types    []string `json:"types"`
+	Tags     []string `json:"tags"`
 	Patterns []string `json:"patterns"`
 }
 
@@ -102,7 +102,7 @@ func parseFile(path string, summary bool) (Doc, error) {
 		path,
 		frontmatter.Summary,
 		rendered,
-		frontmatter.Types,
+		frontmatter.Tags,
 		patterns,
 	}, nil
 
@@ -149,7 +149,7 @@ func filterDocs(docs []Doc, filter []string) []Doc {
 	var filtered []Doc
 
 	for _, doc := range docs {
-		if intersects(filter, doc.Types) {
+		if intersects(filter, doc.Tags) {
 			filtered = append(filtered, doc)
 		}
 	}

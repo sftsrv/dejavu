@@ -71,7 +71,7 @@ the following flags may be provided when running dejavu. provided flags will ove
 func main() {
 	pathFlag := flag.String("path", "./dejavu.config.json", "path to config file")
 	docsFlag := flag.String("docs", "", "path to directory containing docs")
-	typesFlag := flag.String("types", "", "limit the types of docs to include")
+	tagsFlag := flag.String("tags", "", "filter docs by those including the given tags")
 	summaryFlag := flag.Bool("summary", false, "only show summary of doc")
 	helpFlag := flag.Bool("help", false, "show help menu")
 
@@ -86,13 +86,13 @@ func main() {
 	flags := config.Flags{
 		Path:    *pathFlag,
 		Docs:    *docsFlag,
-		Types:   *typesFlag,
+		Tags:    *tagsFlag,
 		Summary: *summaryFlag,
 	}
 
 	config := config.Load(flags)
 
-	docs := docs.Load(config.Docs, config.Types, config.Summary)
+	docs := docs.Load(config.Docs, config.Tags, config.Summary)
 
 	processStream(os.Stdin, os.Stdout, &docs)
 }
