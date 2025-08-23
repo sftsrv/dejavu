@@ -5,6 +5,9 @@ patterns:
 
 # Déjà vu
 
+> [!NOTE]  
+> Welcome! If you're using this consider now a bug hunter. Let me know if you find any issues so that we can make this better for everyone!
+
 Developers don't read documentation. Just bring it to them instead.
 
 `dejavu` surfaces documentation that may be relevant to your developers alongside the output of your normal CLI commands
@@ -27,7 +30,9 @@ The application can be used by piping any other command on which you'd like to s
 cat myfile.txt | dejavu
 ```
 
-Since `dejavu` works with the stdin stream that it received, in some cases you may need to merge Stdout and Stderr into a single stream that can be used, doing will depend on the shell you're using
+
+> [!TIP]
+> Since `dejavu` works with the Stdin stream only, in some cases you may need to merge Stdout and Stderr into a single stream so that it can be used as expected, doing will depend on the shell you're using
 
 ## Documentation Structure
 
