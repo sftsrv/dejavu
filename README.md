@@ -4,6 +4,8 @@ Developers don't read documentation. Just bring it to them instead.
 
 `dejavu` surfaces documentation that may be relevant to your developers alongside the output of your normal CLI commands
 
+![dejavu in action](./images/demo.gif)
+
 ## Installation
 
 The project is still in the early stages of development, at the moment it's only possible to install using `go install`
