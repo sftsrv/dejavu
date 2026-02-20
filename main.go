@@ -4,7 +4,9 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"io"
 	"os"
+	"os/exec"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/sftsrv/dejavu/config"
@@ -39,20 +41,50 @@ func getMessage(docs *[]docs.Doc, line []byte) string {
 
 }
 
-func processStream(in, out *os.File, docs *[]docs.Doc) {
-	scanner := bufio.NewScanner(in)
-
+func runDejavu(docs *[]docs.Doc, streams DejavuStreams) {
+	scanner := bufio.NewScanner(streams.in)
 	for scanner.Scan() {
 		bytes := scanner.Bytes()
 
 		message := getMessage(docs, bytes)
 		if message != "" {
-			fmt.Fprintf(out, "\r\n%s", message)
+			fmt.Fprintf(streams.out, "\r\n%s", message)
 		}
 
-		out.WriteString("\r\n")
-		out.Write(bytes)
+		streams.out.WriteString("\n")
+		streams.out.Write(bytes)
 	}
+}
+
+type DejavuStreams struct {
+	in  io.Reader
+	out *os.File
+}
+
+func createStdinStream(stdin, stdout *os.File) (DejavuStreams, error) {
+	return DejavuStreams{stdin, stdout}, nil
+}
+
+func createCommandStream(command string, args []string, in, out *os.File) (DejavuStreams, error) {
+	cmd := exec.Command(command, args...)
+
+	cmd.Stdin = in
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return DejavuStreams{}, err
+	}
+
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return DejavuStreams{}, err
+	}
+
+	reader := io.MultiReader(stdout, stderr)
+
+	go cmd.Start()
+
+	return DejavuStreams{reader, out}, nil
 
 }
 
@@ -63,6 +95,12 @@ dejavu surfaces documentation that may be relevant to your developers alongside 
 dejavu is used a pipe as follows:
 
 $ my special command | dejavu <...flags>
+
+or for interactive commands, you can use the following
+
+$ dejavu my special command
+
+> Note that any flags provided will be considered part of the comand
 
 the following flags may be provided when running dejavu. provided flags will override the matching value in the config file:
 
@@ -94,5 +132,21 @@ func main() {
 
 	docs := docs.Load(config.Docs, config.Tags, config.Summary)
 
-	processStream(os.Stdin, os.Stdout, &docs)
+	var streams DejavuStreams
+	var err error
+
+	if len(os.Args) > 1 {
+		parts := os.Args[1:]
+		name := parts[0]
+		args := parts[1:]
+		streams, err = createCommandStream(name, args, os.Stdin, os.Stdout)
+	} else {
+		streams, err = createStdinStream(os.Stdin, os.Stdout)
+	}
+
+	if err != nil {
+		panic(err)
+	}
+
+	runDejavu(&docs, streams)
 }

@@ -21,6 +21,8 @@ go install github.com/sftsrv/dejavu@latest
 > [!NOTE]  
 > Welcome! If you're using this then consider yourself now a bug hunter. Let me know if you find any issues so that we can make this better for everyone!
 
+### As a Stream
+
 The application can be used by piping any other command on which you'd like to surface documentation, for example `cat myfile.txt`:
 
 ```sh
@@ -29,6 +31,14 @@ cat myfile.txt | dejavu
 
 > [!TIP]
 > Since `dejavu` works with the Stdin stream only, in some cases you may need to merge Stdout and Stderr into a single stream so that it can be used as expected, doing will depend on the shell you're using
+
+### As a Command
+
+`dejavu` can also execute the command directly while connecting Stdin to the command's Stdin. This can be done by passing the entire command to run - flags included - to `dejavu`
+
+```sh
+dejavu some interactive command
+```
 
 ## Documentation Structure
 

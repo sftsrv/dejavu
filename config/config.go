@@ -43,7 +43,6 @@ type Flags struct {
 }
 
 func Load(flags Flags) Config {
-
 	config := loadConfigFile(flags.Path)
 
 	if flags.Docs != "" {
