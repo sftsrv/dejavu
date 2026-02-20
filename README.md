@@ -34,10 +34,10 @@ cat myfile.txt | dejavu
 
 ### As a Command
 
-`dejavu` can also execute the command directly while connecting Stdin to the command's Stdin. This can be done by passing the entire command to run - flags included - to `dejavu`
+`dejavu` can also execute the command directly while connecting Stdin to the command's Stdin. This can be done by passing the entire command to run to `dejavu`
 
 ```sh
-dejavu some interactive command
+dejavu -c "some interactive command"
 ```
 
 ## Documentation Structure

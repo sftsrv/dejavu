@@ -22,5 +22,5 @@ echo "Hello this is an error" | go run .
 Or
 
 ```sh
-go run . "echo 'Hello this is an error'"
+go run . -c "echo 'Hello this is an error'"
 ```

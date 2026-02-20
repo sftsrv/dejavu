@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/sftsrv/dejavu/config"
@@ -102,15 +103,14 @@ $ my special command | dejavu <...flags>
 
 or for interactive commands, you can use the following
 
-$ dejavu my special command
-
-> Note that any flags provided will be considered part of the comand
+$ dejavu -c "my special command"
 
 the following flags may be provided when running dejavu. provided flags will override the matching value in the config file:
 
 `
 
 func main() {
+	commandFlag := flag.String("c", "", "command to run")
 	pathFlag := flag.String("path", "./dejavu.config.json", "path to config file")
 	docsFlag := flag.String("docs", "", "path to directory containing docs")
 	tagsFlag := flag.String("tags", "", "filter docs by those including the given tags")
@@ -139,8 +139,8 @@ func main() {
 	var streams DejavuStreams
 	var err error
 
-	if len(os.Args) > 1 {
-		parts := os.Args[1:]
+	if len(*commandFlag) > 1 {
+		parts := strings.Fields(*commandFlag)
 		name := parts[0]
 		args := parts[1:]
 		streams, err = createCommandStream(name, args, os.Stdin, os.Stdout)
