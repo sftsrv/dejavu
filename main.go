@@ -51,7 +51,7 @@ func runDejavu(docs *[]docs.Doc, streams DejavuStreams) {
 			fmt.Fprintf(streams.out, "\r\n%s", message)
 		}
 
-		streams.out.WriteString("\n")
+		streams.out.WriteString("\r\n")
 		streams.out.Write(bytes)
 	}
 }
@@ -69,6 +69,10 @@ func createCommandStream(command string, args []string, in, out *os.File) (Dejav
 	cmd := exec.Command(command, args...)
 
 	cmd.Stdin = in
+	// Assigning cmd.Stdin = os.Stdout would enable color output here
+	// which can probably be achieved using some type of io.MultiWriter
+	// but interactive commands with merged output is already weird enough
+	// so I don't know if it's even worth doing
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
