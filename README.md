@@ -40,6 +40,16 @@ cat myfile.txt | dejavu
 dejavu -c "some interactive command"
 ```
 
+### As a Query
+
+Or if you just have a message as a string that you'd like to get some matches on - you can run it with:
+
+```sh
+dejavu -q "my error message"
+```
+
+> This is equivalent to something like `echo "my error message" | dejavu` but is a bit less mysterious
+
 ## Documentation Structure
 
 Each doc should be a markdown file that contains frontmatter with a `patterns` property which is a list of regular expressions on which the document should be shown:

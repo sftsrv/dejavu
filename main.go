@@ -93,6 +93,34 @@ func createCommandStream(command string, args []string, in, out *os.File) (Dejav
 
 }
 
+var noMatches = lipgloss.NewStyle().
+	Background(lipgloss.Color("208")).
+	Foreground(lipgloss.Color("231")).
+	Render(fmt.Sprintf("%s: %s", title, "No matches found"))
+
+func runQuery(docs *[]docs.Doc, query string) {
+	matched := false
+	lines := strings.Lines(query)
+
+	for line := range lines {
+		fmt.Print(line)
+		message := getMessage(docs, []byte(line))
+		if message != "" {
+			fmt.Println()
+			fmt.Println(message)
+
+			if !matched {
+				matched = true
+			}
+		}
+	}
+
+	if !matched {
+		fmt.Println()
+		fmt.Println(noMatches)
+	}
+}
+
 const usage = `dejavu
 
 dejavu surfaces documentation that may be relevant to your developers alongside the output of your normal CLI commands
@@ -105,11 +133,16 @@ or for interactive commands, you can use the following
 
 $ dejavu -c "my special command"
 
+or for querying using some string that you already have, you can use the following
+
+$ dejavu -q "my error message"
+
 the following flags may be provided when running dejavu. provided flags will override the matching value in the config file:
 
 `
 
 func main() {
+	queryFlag := flag.String("q", "", "query database for given string")
 	commandFlag := flag.String("c", "", "command to run")
 	pathFlag := flag.String("path", "./dejavu.config.json", "path to config file")
 	docsFlag := flag.String("docs", "", "path to directory containing docs")
@@ -136,10 +169,15 @@ func main() {
 
 	docs := docs.Load(config.Docs, config.Tags, config.Summary)
 
+	if len(*queryFlag) > 0 {
+		runQuery(&docs, *queryFlag)
+		return
+	}
+
 	var streams DejavuStreams
 	var err error
 
-	if len(*commandFlag) > 1 {
+	if len(*commandFlag) > 0 {
 		parts := strings.Fields(*commandFlag)
 		name := parts[0]
 		args := parts[1:]
