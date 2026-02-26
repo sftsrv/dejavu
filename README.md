@@ -21,12 +21,18 @@ go install github.com/sftsrv/dejavu@latest
 > [!NOTE]  
 > Welcome! If you're using this then consider yourself now a bug hunter. Let me know if you find any issues so that we can make this better for everyone!
 
+You can view overall command help with:
+
+```sh
+dejavu --help
+```
+
 ### As a Stream
 
 The application can be used by piping any other command on which you'd like to surface documentation, for example `cat myfile.txt`:
 
 ```sh
-cat myfile.txt | dejavu
+cat myfile.txt | dejavu <...flags>
 ```
 
 > [!TIP]
@@ -37,7 +43,7 @@ cat myfile.txt | dejavu
 `dejavu` can also execute the command directly while connecting Stdin to the command's Stdin. This can be done by passing the entire command to run to `dejavu`
 
 ```sh
-dejavu -c "some interactive command"
+dejavu -c "some interactive command" <...flags>
 ```
 
 ### As a Query
@@ -45,7 +51,7 @@ dejavu -c "some interactive command"
 Or if you just have a message as a string that you'd like to get some matches on - you can run it with:
 
 ```sh
-dejavu -q "my error message"
+dejavu -q "my error message" <...flags>
 ```
 
 > This is equivalent to something like `echo "my error message" | dejavu` but is a bit less mysterious
@@ -92,7 +98,7 @@ they are triggered if we see output with a line starting with
 }
 ```
 
-> The config file can also be set with the `--config` flag.
+> The config file can also be set with the `--config` flag. And any config values can also be provide or overridden by means of their respective flag
 
 Values from the configuration may also be overidden using the matching command line arguments. These can be found by using `dejavu --help`
 

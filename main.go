@@ -131,11 +131,11 @@ $ my special command | dejavu <...flags>
 
 or for interactive commands, you can use the following
 
-$ dejavu -c "my special command"
+$ dejavu -c "my special command" <...flags>
 
 or for querying using some string that you already have, you can use the following
 
-$ dejavu -q "my error message"
+$ dejavu -q "my error message" <...flags>
 
 the following flags may be provided when running dejavu. provided flags will override the matching value in the config file:
 
